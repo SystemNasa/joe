@@ -1,4 +1,3 @@
--- Services
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -41,15 +40,25 @@ local function getOffset(targetCFrame, direction, distance)
         return targetCFrame.LookVector * (distance - 1) * 3
     elseif direction == "Behind" then
         return targetCFrame.LookVector * -(distance - 1) * 3
+    elseif direction == "Facing" then
+        return targetCFrame.LookVector * (distance - 1) * 3
     else
         warn("Invalid direction: " .. tostring(direction) .. ". Defaulting to Side.")
         return targetCFrame.RightVector * -(distance - 1) * 3
     end
 end
 
+local function destroyAllSeats()
+    for _, seat in pairs(workspace:GetDescendants()) do
+        if seat:IsA("Seat") or seat:IsA("VehicleSeat") then
+            seat:Destroy()
+        end
+    end
+end
+
 local function activateBodyCopy(target)
     if updateConnection then
-        updateConnection:Disconnect() -- Fixed typo "Patients" to "Disconnect"
+        updateConnection:Disconnect()
         updateConnection = nil
     end
     if getgenv().Running then
@@ -109,7 +118,14 @@ local function activateBodyCopy(target)
                         if offsetMagnitude == 1.0 then
                             localPart.CFrame = targetPart.CFrame
                         else
-                            localPart.CFrame = targetPart.CFrame + offset
+                            if selectedDirection == "Facing" then
+                                local basePosition = targetPart.CFrame.Position + offset
+                                local targetOrientation = targetHRP.CFrame - targetHRP.CFrame.Position
+                                local facingCFrame = targetOrientation * CFrame.Angles(0, math.rad(180), 0)
+                                localPart.CFrame = CFrame.new(basePosition) * facingCFrame
+                            else
+                                localPart.CFrame = targetPart.CFrame + offset
+                            end
                         end
                     end
                 end
@@ -127,16 +143,10 @@ local function deactivateBodyCopy()
         updateConnection = nil
     end
     workspace.Gravity = 196.2
-    local char = player.Character
     if ReplicatedStorage:FindFirstChild("UnragdollEvent") then
         ReplicatedStorage.UnragdollEvent:FireServer()
     end
-    for _, seat in pairs(workspace:GetDescendants()) do
-        if seat:IsA("Seat") or seat:IsA("VehicleSeat") then
-            seat.Disabled = false
-            seat.CanCollide = true
-        end
-    end
+    local char = player.Character
     if char and char:FindFirstChild("Humanoid") then
         workspace.CurrentCamera.CameraSubject = char.Humanoid
     end
@@ -377,6 +387,7 @@ local function createGUI()
 
     PositionButton = Instance.new("TextButton")
     PositionButton.Size = UDim2.new(1, -40, 1, 0)
+    PositionButton.Position = UDim2.new(0, 0, 0, 0)
     PositionButton.BackgroundTransparency = 1
     PositionButton.Text = selectedDirection
     PositionButton.Font = Enum.Font.Gotham
@@ -396,7 +407,7 @@ local function createGUI()
     DropdownArrow.Parent = PositionDropdown
 
     PositionDropdownList = Instance.new("Frame")
-    PositionDropdownList.Size = UDim2.new(0, 0, 0, 90)
+    PositionDropdownList.Size = UDim2.new(0.9, 0, 0, 90)
     PositionDropdownList.Position = UDim2.new(0.05, 0, 0, 170)
     PositionDropdownList.BackgroundColor3 = Color3.fromRGB(40, 43, 48)
     PositionDropdownList.BackgroundTransparency = 0.2
@@ -443,7 +454,7 @@ local function createGUI()
     PlayerListLayout.Padding = UDim.new(0, 5)
     PlayerListLayout.Parent = PlayerDropdownList
 
-    local directions = {"Side", "Front", "Behind"}
+    local directions = {"Side", "Front", "Behind", "Facing"}
 
     local function updatePositionDropdown()
         for _, child in ipairs(PositionDropdownList:GetChildren()) do
@@ -452,43 +463,68 @@ local function createGUI()
             end
         end
         
-        for i, dir in ipairs(directions) do
+        -- Create a filtered list excluding the currently selected direction
+        local availableDirections = {}
+        for _, dir in ipairs(directions) do
             if dir ~= selectedDirection then
-                local option = Instance.new("TextButton")
-                option.Size = UDim2.new(1, -10, 0, 28)
-                option.Position = UDim2.new(0, 5, 0, 0)
-                option.BackgroundColor3 = Color3.fromRGB(60, 65, 70)
-                option.BackgroundTransparency = 0.5
-                option.Text = dir
-                option.Font = Enum.Font.Gotham
-                option.TextSize = 14
-                option.TextColor3 = Color3.fromRGB(240, 240, 240)
-                option.LayoutOrder = i
-                option.Parent = PositionDropdownList
-
-                local optionCorner = Instance.new("UICorner")
-                optionCorner.CornerRadius = UDim.new(0, 6)
-                optionCorner.Parent = option
-
-                option.MouseEnter:Connect(function()
-                    TweenService:Create(option, TweenInfo.new(0.2), {BackgroundTransparency = 0.3, TextColor3 = Color3.fromRGB(130, 150, 230)}):Play()
-                end)
-                
-                option.MouseLeave:Connect(function()
-                    TweenService:Create(option, TweenInfo.new(0.2), {BackgroundTransparency = 0.5, TextColor3 = Color3.fromRGB(240, 240, 240)}):Play()
-                end)
-
-                option.MouseButton1Click:Connect(function()
-                    selectedDirection = dir
-                    PositionButton.Text = dir
-                    PositionDropdownList.Visible = false
-                    updatePositionDropdown()
-                end)
+                table.insert(availableDirections, dir)
             end
+        end
+        
+        -- Adjust dropdown size based on number of available options
+        PositionDropdownList.Size = UDim2.new(0.9, 0, 0, #availableDirections * 30)
+        
+        for i, dir in ipairs(availableDirections) do
+            local option = Instance.new("TextButton")
+            option.Size = UDim2.new(1, 0, 0, 28)
+            option.BackgroundColor3 = Color3.fromRGB(60, 65, 70)
+            option.BackgroundTransparency = 0.5
+            option.Text = dir
+            option.Font = Enum.Font.Gotham
+            option.TextSize = 14
+            option.TextColor3 = Color3.fromRGB(240, 240, 240)
+            option.LayoutOrder = i
+            option.ZIndex = 6
+            option.Parent = PositionDropdownList
+
+            local optionCorner = Instance.new("UICorner")
+            optionCorner.CornerRadius = UDim.new(0, 6)
+            optionCorner.Parent = option
+
+            option.MouseEnter:Connect(function()
+                TweenService:Create(option, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 0.3,
+                    TextColor3 = Color3.fromRGB(130, 150, 230)
+                }):Play()
+            end)
+            
+            option.MouseLeave:Connect(function()
+                TweenService:Create(option, TweenInfo.new(0.2), {
+                    BackgroundTransparency = 0.5,
+                    TextColor3 = Color3.fromRGB(240, 240, 240)
+                }):Play()
+            end)
+
+            option.MouseButton1Click:Connect(function()
+                selectedDirection = dir
+                PositionButton.Text = dir
+                PositionDropdownList.Visible = false
+                -- No need to call updatePositionDropdown() here to prevent recursion
+            end)
         end
     end
 
-    updatePositionDropdown()
+    PositionButton.MouseEnter:Connect(function()
+        TweenService:Create(PositionButton, TweenInfo.new(0.2), {
+            TextColor3 = Color3.fromRGB(130, 150, 230)
+        }):Play()
+    end)
+
+    PositionButton.MouseLeave:Connect(function()
+        TweenService:Create(PositionButton, TweenInfo.new(0.2), {
+            TextColor3 = Color3.fromRGB(240, 240, 240)
+        }):Play()
+    end)
 
     PositionButton.MouseButton1Click:Connect(function()
         PositionDropdownList.Visible = not PositionDropdownList.Visible
@@ -731,4 +767,5 @@ local function createGUI()
     updateDistance(offsetMagnitude)
 end
 
+destroyAllSeats()
 createGUI()
