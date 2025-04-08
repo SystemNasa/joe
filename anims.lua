@@ -274,7 +274,6 @@ return {
     ["Jabba Loop V2"] = 8229514367,
     ["Love Me Like I Love You"] = 113197266804415,
     ["Smooth Criminal"] = 8036951540,
-    ["The Worm Loop V2"] = 7160307855,
     ["Rude Boy II"] = 16827397883,
     ["Scream & Shout II"] = 16827533892,
     ["Slave To The Rhythm"] = 16827642962,
