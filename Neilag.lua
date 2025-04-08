@@ -190,25 +190,6 @@ NotificationStroke.Thickness = 1
 NotificationStroke.Color = Color3.fromRGB(70, 70, 80)
 NotificationStroke.Parent = NotificationToggle
 
-local HideToggle = Instance.new("TextButton")
-HideToggle.Size = UDim2.new(1, -20, 0, 40)
-HideToggle.Position = UDim2.new(0, 10, 0, 70)
-HideToggle.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-HideToggle.Text = "Hide: ON"
-HideToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-HideToggle.Font = Enum.Font.SourceSansSemibold
-HideToggle.TextSize = 18
-HideToggle.Parent = SettingsFrame
-
-local HideCorner = Instance.new("UICorner")
-HideCorner.CornerRadius = UDim.new(0, 10)
-HideCorner.Parent = HideToggle
-
-local HideStroke = Instance.new("UIStroke")
-HideStroke.Thickness = 1
-HideStroke.Color = Color3.fromRGB(70, 70, 80)
-HideStroke.Parent = HideToggle
-
 local DiscordButton = Instance.new("TextButton")
 DiscordButton.Size = UDim2.new(1, -20, 0, 40)
 DiscordButton.Position = UDim2.new(0, 10, 0, 120)
@@ -272,15 +253,36 @@ local minimizedSize = UDim2.new(0, 400, 0, 40)
 MinimizeButton.MouseButton1Click:Connect(function()
     minimized = not minimized
     if minimized then
+        -- Hide content immediately
         TabBar.Visible = false
         ContentArea.Visible = false
-        MainFrame:TweenSize(minimizedSize, "Out", "Quad", 0.3, true)
-        MinimizeButton.Text = "+"
+        -- Tween the frame size (no transparency change for buttons)
+        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(MainFrame, tweenInfo, {Size = minimizedSize})
+        tween:Play()
+        tween.Completed:Connect(function()
+            MinimizeButton.Text = "+"
+        end)
     else
-        TabBar.Visible = true
-        ContentArea.Visible = true
-        MainFrame:TweenSize(expandedSize, "Out", "Quad", 0.3, true)
-        MinimizeButton.Text = "–"
+        -- Set buttons to transparent initially for fade-in effect
+        MinimizeButton.TextTransparency = 1
+        MinimizeButton.BackgroundTransparency = 1
+        CloseButton.TextTransparency = 1
+        CloseButton.BackgroundTransparency = 1
+        -- Tween the frame size first
+        local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local tween = TweenService:Create(MainFrame, tweenInfo, {Size = expandedSize})
+        tween:Play()
+        tween.Completed:Connect(function()
+            -- Show content after expansion
+            TabBar.Visible = true
+            ContentArea.Visible = true
+            MinimizeButton.Text = "–"
+            -- Fade in buttons
+            local fadeInfo = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+            TweenService:Create(MinimizeButton, fadeInfo, {TextTransparency = 0, BackgroundTransparency = 0}):Play()
+            TweenService:Create(CloseButton, fadeInfo, {TextTransparency = 0, BackgroundTransparency = 0}):Play()
+        end)
     end
 end)
 
@@ -485,8 +487,7 @@ local lagEnabled = false
 local ragdollConnection
 local lastModifiedUsername
 local lagButtonCooldown = false
-local hideEnabled = true
-local lagCooldownTime = 10 -- Cooldown duration in seconds
+local lagCooldownTime = 10
 
 local ragdollEvent = ReplicatedStorage:FindFirstChild("RagdollEvent")
 local unragdollEvent = ReplicatedStorage:FindFirstChild("UnragdollEvent")
@@ -540,7 +541,7 @@ local function toggleRagdoll()
             wait(1)
         end
 
-        if hideEnabled and rootPart then
+        if rootPart then
             rootPart.CFrame = CFrame.new(4224, 26, 62)
             wait(0.5)
         end
@@ -630,7 +631,7 @@ LagServerButton.MouseButton1Click:Connect(function()
     lagToggled = not lagToggled
     lagEnabled = lagToggled
     LagServerButton.Text = "Lag Server: " .. (lagToggled and "ON" or "OFF")
-    LagServerButton.BackgroundColor3 = lagToggled and Color3.fromRGB(100, 150, 255) or Color3.fromRGB(45, 45, 50)
+    LagServerButton.BackgroundColor3 = lagToggled and Color3.fromRGB(0, 150, 150) or Color3.fromRGB(45, 45, 50)
 
     toggleRagdoll()
 
@@ -1175,7 +1176,7 @@ AnnoyServerButton.MouseButton1Click:Connect(function()
 
     annoyToggled = not annoyToggled
     AnnoyServerButton.Text = "Annoy Server: " .. (annoyToggled and "ON" or "OFF")
-    AnnoyServerButton.BackgroundColor3 = annoyToggled and Color3.fromRGB(100, 150, 255) or Color3.fromRGB(45, 45, 50)
+    AnnoyServerButton.BackgroundColor3 = annoyToggled and Color3.fromRGB(0, 150, 150) or Color3.fromRGB(45, 45, 50)
 
     if annoyToggled then
         ModifyUsername_upvr:FireServer("VirtuallyNad")
@@ -1418,13 +1419,6 @@ end)
 NotificationToggle.MouseButton1Click:Connect(function()
     notificationsEnabled = not notificationsEnabled
     NotificationToggle.Text = "Notifications: " .. (notificationsEnabled and "ON" or "OFF")
-    -- BackgroundColor3 remains unchanged
-end)
-
-HideToggle.MouseButton1Click:Connect(function()
-    hideEnabled = not hideEnabled
-    HideToggle.Text = "Hide: " .. (hideEnabled and "ON" or "OFF")
-    -- BackgroundColor3 remains unchanged
 end)
 
 DiscordButton.MouseButton1Click:Connect(function()
