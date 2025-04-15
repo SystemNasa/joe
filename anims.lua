@@ -868,7 +868,7 @@ return {
     ["Dusk Till Dawn"] = 15086714992,
     ["Coincidance"] = 15103592543,
     ["How Sweet - pt2"] = 18331463874,
-    ["GANGNAM STYLE"] = 18553011864,
+    ["Sweethearts"] = 70638757661273,
     ["SLIM SHADY"] = 18553150120,
     ["JAYWALKING"] = 10970927618,
     ["WORM"] = 7160307855,
