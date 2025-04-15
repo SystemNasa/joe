@@ -29,7 +29,7 @@ local snakeOrder = {
 }
 local snakeDistance = 1.0
 local snakeSmoothing = 0.02
-local SNAKE_MIN_DISTANCE = 0.2
+local SNAKE_MIN_DISTANCE = 0.5
 local SNAKE_MAX_DISTANCE = 5.0
 local ghostEnabled = false
 local originalCharacter
