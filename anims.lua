@@ -881,5 +881,8 @@ return {
     ["im diamond"] = 14053214985,
     ["last forever"] = 14053226316,
     ["raise the roof"] = 14053240024,
-    ["conga2"] = 14053147989
+    ["See Tinh"] = 16455492775,
+    ["Rasputin"] = 132179495720233,
+    ["Made you look"] = 135718096107662,
+    ["Still into you"] = 140467335234413
 }
