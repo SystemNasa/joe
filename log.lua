@@ -74,7 +74,7 @@ local function createWebhookData()
                     "• [Game Name](%s): %s\n• Game ID: %d\n• Executor: %s\n• [Join on Mobile](%s)\n\n",
                     gameLink, GameName, game.PlaceId, executor, mobileJoinLink
                 ) ..
-                "**Technical Data**\n" ..
+                "**Server**\n" ..
                 string.format("**Job ID:**\n```%s```", game.JobId),
             color = tonumber("0x3498db"),
             thumbnail = { url = gameThumbnailUrlFinal },
