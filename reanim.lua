@@ -1542,8 +1542,8 @@ local function createCustomAnimationsGui()
     local shadowContainer = Instance.new("Frame")
     shadowContainer.Name = "shadowContainer"
     shadowContainer.BackgroundTransparency = 1
-    shadowContainer.Size = UDim2.new(0, 332, 0, 482)
-    shadowContainer.Position = UDim2.new(1, -336, 1, -486)
+    shadowContainer.Size = UDim2.new(0, 352, 0, 481)
+    shadowContainer.Position = UDim2.new(1, -346, 1, -496)
     shadowContainer.ZIndex = 1
     shadowContainer.Parent = screenGui
     local shadowCorner = Instance.new("UICorner")
@@ -1564,8 +1564,8 @@ local function createCustomAnimationsGui()
     shadow.Parent = shadowContainer
 
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 300, 0, 450)
-    mainFrame.Position = UDim2.new(1, -320, 1, -470)
+    mainFrame.Size = UDim2.new(0, 320, 0, 450)
+    mainFrame.Position = UDim2.new(1, -330, 1, -480)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     mainFrame.BorderSizePixel = 0
     mainFrame.ZIndex = 2
@@ -2004,112 +2004,90 @@ local function createCustomAnimationsGui()
     updateCustomButtons()
 
     local originalGuiHeight = mainFrame.Size.Y.Offset
-    local minimizedGuiHeight = titleBar.Size.Y.Offset + 10
+    local minimizedGuiHeight = titleBar.Size.Y.Offset
     local minimized = false
-    local tweenInfoFade = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local originalTransparencies = {}
-    local toggles = {reanimationToggle, animationListToggle, customAnimationsToggle, musicToggle}
-
-for _, toggle in ipairs(toggles) do
-    originalTransparencies[toggle.ToggleFill] = {
-        BackgroundTransparency = toggle.GetState() and 0 or 1
-    }
-    originalTransparencies[toggle.ToggleButton] = {
-        Position = toggle.GetState() and UDim2.new(0.5, 2, 0.5, -12) or UDim2.new(0, 2, 0.5, -12)
-    }
-end
-
-for _, child in pairs(contentFrame:GetDescendants()) do
-    if child:IsA("GuiObject") and not originalTransparencies[child] then
-        originalTransparencies[child] = {
-            BackgroundTransparency = child.BackgroundTransparency,
-            TextTransparency = (child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox")) and child.TextTransparency or nil
-        }
-    end
-end
-
--- Updated minimizeButton.MouseButton1Click handler
-minimizeButton.MouseButton1Click:Connect(function()
-    minimized = not minimized
     local tweenInfoFade = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local tweenInfoSize = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
-    if minimized then
-        minimizeButton.Text = "+"
-        contentFrame.Visible = false
-
-        TweenService:Create(contentFrame, tweenInfoFade, {BackgroundTransparency = 1}):Play()
-        for _, child in pairs(contentFrame:GetDescendants()) do
-            if child:IsA("GuiObject") then
-                TweenService:Create(child, tweenInfoFade, {BackgroundTransparency = 1}):Play()
-                if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
-                    TweenService:Create(child, tweenInfoFade, {TextTransparency = 1}):Play()
-                end
-            end
+    local originalTransparencies = {}
+    for _, child in pairs(contentFrame:GetDescendants()) do
+        if child:IsA("GuiObject") then
+            originalTransparencies[child] = {
+                BackgroundTransparency = child.BackgroundTransparency,
+                TextTransparency = (child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox")) and child.TextTransparency or nil
+            }
         end
+    end
 
-        local sizeTween = TweenService:Create(
-            mainFrame,
-            tweenInfoSize,
-            {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, minimizedGuiHeight)}
-        )
-        sizeTween:Play()
-        TweenService:Create(shadowContainer, tweenInfoSize, {
-            Size = UDim2.new(0, 332, 0, minimizedGuiHeight + 12),
-            Position = UDim2.new(0, mainFrame.Position.X.Offset - 6, 0, mainFrame.Position.Y.Offset - 3)
-        }):Play()
-        TweenService:Create(shadow, tweenInfoSize, {
-            ImageTransparency = 0.25
-        }):Play()
-    else
-        minimizeButton.Text = "−"
-        contentFrame.Visible = true
+    minimizeButton.MouseButton1Click:Connect(function()
+        minimized = not minimized
 
-        local sizeTween = TweenService:Create(
-            mainFrame,
-            tweenInfoSize,
-            {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, originalGuiHeight)}
-        )
-        sizeTween:Play()
-        TweenService:Create(shadowContainer, tweenInfoSize, {
-            Size = UDim2.new(0, 352, 0, originalGuiHeight + 31),
-            Position = UDim2.new(0, mainFrame.Position.X.Offset - 16, 0, mainFrame.Position.Y.Offset - 16)
-        }):Play()
-        TweenService:Create(shadow, tweenInfoSize, {
-            ImageTransparency = 0.3
-        }):Play()
+        if minimized then
+            minimizeButton.Text = "+"
+            contentFrame.Visible = false
 
-        sizeTween.Completed:Connect(function()
-            TweenService:Create(contentFrame, tweenInfoFade, {
-                BackgroundTransparency = originalTransparencies[contentFrame] and 
-                originalTransparencies[contentFrame].BackgroundTransparency or 1
-            }):Play()
             for _, child in pairs(contentFrame:GetDescendants()) do
                 if child:IsA("GuiObject") then
-                    local orig = originalTransparencies[child]
-                    if orig then
-                        if orig.BackgroundTransparency ~= nil then
-                            TweenService:Create(child, tweenInfoFade, {BackgroundTransparency = orig.BackgroundTransparency}):Play()
-                        end
-                        if orig.TextTransparency ~= nil then
-                            TweenService:Create(child, tweenInfoFade, {TextTransparency = orig.TextTransparency}):Play()
-                        end
-                        if orig.Position then
-                            TweenService:Create(child, tweenInfoFade, {Position = orig.Position}):Play()
-                        end
+                    TweenService:Create(child, tweenInfoFade, {BackgroundTransparency = 1}):Play()
+                    if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
+                        TweenService:Create(child, tweenInfoFade, {TextTransparency = 1}):Play()
                     end
                 end
             end
-        end)
-    end
-end)
+
+            local sizeTween = TweenService:Create(
+                mainFrame,
+                tweenInfoSize,
+                {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, minimizedGuiHeight)}
+            )
+            sizeTween:Play()
+            TweenService:Create(shadowContainer, tweenInfoSize, {
+                Size = UDim2.new(0, 332, 0, minimizedGuiHeight + 12),
+                Position = UDim2.new(0, mainFrame.Position.X.Offset - 6, 0, mainFrame.Position.Y.Offset - 3)
+            }):Play()
+            TweenService:Create(shadow, tweenInfoSize, {
+                ImageTransparency = 0.25
+            }):Play()
+        else
+            minimizeButton.Text = "−"
+            contentFrame.Visible = true
+
+            local sizeTween = TweenService:Create(
+                mainFrame,
+                tweenInfoSize,
+                {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, originalGuiHeight)}
+            )
+            sizeTween:Play()
+            TweenService:Create(shadowContainer, tweenInfoSize, {
+                Size = UDim2.new(0, 352, 0, originalGuiHeight + 31),
+                Position = UDim2.new(0, mainFrame.Position.X.Offset - 16, 0, mainFrame.Position.Y.Offset - 16)
+            }):Play()
+            TweenService:Create(shadow, tweenInfoSize, {
+                ImageTransparency = 0.3
+            }):Play()
+
+            sizeTween.Completed:Connect(function()
+                for _, child in pairs(contentFrame:GetDescendants()) do
+                    if child:IsA("GuiObject") then
+                        local orig = originalTransparencies[child]
+                        if orig then
+                            TweenService:Create(child, tweenInfoFade, {BackgroundTransparency = orig.BackgroundTransparency}):Play()
+                            if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
+                                TweenService:Create(child, tweenInfoFade, {TextTransparency = orig.TextTransparency}):Play()
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+    end)
 
     local dragging = false
     local dragOffset = Vector2.new(0, 0)
     local currentTween = nil
     local shadowTween = nil
     local dragConnection
-    local tweenInfoDrag = TweenInfo.new(0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+    local tweenInfoDrag = TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
 
     titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -2121,7 +2099,9 @@ end)
                 if not dragging then return end
                 local mousePos = UserInputService:GetMouseLocation()
                 local targetPos = UDim2.new(0, mousePos.X - dragOffset.X, 0, mousePos.Y - dragOffset.Y)
-                local shadowPos = UDim2.new(0, (mousePos.X - dragOffset.X) - 16, 0, (mousePos.Y - dragOffset.Y) - 16)
+                local shadowOffsetX = minimized and 6 or 16
+                local shadowOffsetY = minimized and 3 or 16
+                local shadowPos = UDim2.new(0, mousePos.X - dragOffset.X - shadowOffsetX, 0, mousePos.Y - dragOffset.Y - shadowOffsetY)
                 if currentTween then currentTween:Cancel() end
                 currentTween = TweenService:Create(mainFrame, tweenInfoDrag, {Position = targetPos})
                 currentTween:Play()
@@ -2147,6 +2127,21 @@ end)
                 shadowTween:Cancel()
                 shadowTween = nil
             end
+            local shadowSize = UDim2.new(0, 352, 0, originalGuiHeight + 31)
+            local shadowPos = UDim2.new(0, mainFrame.Position.X.Offset - 16, 0, mainFrame.Position.Y.Offset - 16)
+            local shadowTransparency = 0.3
+            if minimized then
+                shadowSize = UDim2.new(0, 332, 0, minimizedGuiHeight + 12)
+                shadowPos = UDim2.new(0, mainFrame.Position.X.Offset - 6, 0, mainFrame.Position.Y.Offset - 3)
+                shadowTransparency = 0.25
+            end
+            shadowTween = TweenService:Create(shadowContainer, tweenInfoDrag, {
+                Position = shadowPos,
+                Size = shadowSize
+            }):Play()
+            TweenService:Create(shadow, tweenInfoDrag, {
+                ImageTransparency = shadowTransparency
+            }):Play()
         end
     end)
 
