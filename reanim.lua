@@ -947,11 +947,37 @@ local function createAnimationListGui()
     loadFavorites()
     loadKeybinds()
 
+    -- Shadow Container Frame
+    local shadowContainer = Instance.new("Frame")
+    shadowContainer.Name = "shadowContainer"
+    shadowContainer.BackgroundTransparency = 1
+    shadowContainer.Size = UDim2.new(0, 332, 0, 482)
+    shadowContainer.Position = UDim2.new(0.7, -166, 0.5, -241)
+    shadowContainer.ZIndex = 1
+    shadowContainer.Parent = screenGui
+    local shadowCorner = Instance.new("UICorner")
+    shadowCorner.CornerRadius = UDim.new(0, 12)
+    shadowCorner.Parent = shadowContainer
+
+    -- Main Shadow ImageLabel
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "shadow"
+    shadow.Image = "rbxassetid://297774371"
+    shadow.ImageColor3 = Color3.fromRGB(15, 15, 15)
+    shadow.ImageTransparency = 0.3
+    shadow.SliceCenter = Rect.new(20, 20, 280, 280)
+    shadow.BackgroundTransparency = 1
+    shadow.Size = UDim2.new(1, 0, 1, 0)
+    shadow.Position = UDim2.new(0, 0, 0, 0)
+    shadow.ZIndex = 1
+    shadow.Parent = shadowContainer
+
     local mainFrame = Instance.new("Frame")
     mainFrame.Size = UDim2.new(0, 300, 0, 450)
     mainFrame.Position = UDim2.new(0.7, -150, 0.5, -225)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     mainFrame.BorderSizePixel = 0
+    mainFrame.ZIndex = 2
     local uiCorner = Instance.new("UICorner")
     uiCorner.CornerRadius = UDim.new(0, 12)
     uiCorner.Parent = mainFrame
@@ -1455,6 +1481,7 @@ local function createAnimationListGui()
     local dragging = false
     local dragOffset = Vector2.new(0, 0)
     local currentTween = nil
+    local shadowTween = nil
     local dragConnection
     local tweenInfoDrag = TweenInfo.new(0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
 
@@ -1468,9 +1495,13 @@ local function createAnimationListGui()
                 if not dragging then return end
                 local mousePos = UserInputService:GetMouseLocation()
                 local targetPos = UDim2.new(0, mousePos.X - dragOffset.X, 0, mousePos.Y - dragOffset.Y)
+                local shadowPos = UDim2.new(0, (mousePos.X - dragOffset.X) - 16, 0, (mousePos.Y - dragOffset.Y) - 16)
                 if currentTween then currentTween:Cancel() end
                 currentTween = TweenService:Create(mainFrame, tweenInfoDrag, {Position = targetPos})
                 currentTween:Play()
+                if shadowTween then shadowTween:Cancel() end
+                shadowTween = TweenService:Create(shadowContainer, tweenInfoDrag, {Position = shadowPos})
+                shadowTween:Play()
             end)
         end
     end)
@@ -1485,6 +1516,10 @@ local function createAnimationListGui()
             if currentTween then
                 currentTween:Cancel()
                 currentTween = nil
+            end
+            if shadowTween then
+                shadowTween:Cancel()
+                shadowTween = nil
             end
         end
     end)
@@ -1503,11 +1538,37 @@ local function createCustomAnimationsGui()
     loadCustomAnimations()
     loadKeybinds()
 
+    -- Shadow Container Frame
+    local shadowContainer = Instance.new("Frame")
+    shadowContainer.Name = "shadowContainer"
+    shadowContainer.BackgroundTransparency = 1
+    shadowContainer.Size = UDim2.new(0, 332, 0, 482)
+    shadowContainer.Position = UDim2.new(1, -336, 1, -486)
+    shadowContainer.ZIndex = 1
+    shadowContainer.Parent = screenGui
+    local shadowCorner = Instance.new("UICorner")
+    shadowCorner.CornerRadius = UDim.new(0, 12)
+    shadowCorner.Parent = shadowContainer
+
+    -- Main Shadow ImageLabel
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "shadow"
+    shadow.Image = "rbxassetid://297774371"
+    shadow.ImageColor3 = Color3.fromRGB(15, 15, 15)
+    shadow.ImageTransparency = 0.3
+    shadow.SliceCenter = Rect.new(20, 20, 280, 280)
+    shadow.BackgroundTransparency = 1
+    shadow.Size = UDim2.new(1, 0, 1, 0)
+    shadow.Position = UDim2.new(0, 0, 0, 0)
+    shadow.ZIndex = 1
+    shadow.Parent = shadowContainer
+
     local mainFrame = Instance.new("Frame")
     mainFrame.Size = UDim2.new(0, 300, 0, 450)
     mainFrame.Position = UDim2.new(1, -320, 1, -470)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     mainFrame.BorderSizePixel = 0
+    mainFrame.ZIndex = 2
     local uiCorner = Instance.new("UICorner")
     uiCorner.CornerRadius = UDim.new(0, 12)
     uiCorner.Parent = mainFrame
@@ -1695,7 +1756,7 @@ local function createCustomAnimationsGui()
     local speedHandleCorner = Instance.new("UICorner")
     speedHandleCorner.CornerRadius = UDim.new(1, 0)
     speedHandleCorner.Parent = speedSliderHandle
-	speedSliderHandle.Parent = speedSliderBG
+    speedSliderHandle.Parent = speedSliderBG
 
     local tweenInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
@@ -1947,79 +2008,106 @@ local function createCustomAnimationsGui()
     local minimized = false
     local tweenInfoFade = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     local originalTransparencies = {}
+    local toggles = {reanimationToggle, animationListToggle, customAnimationsToggle, musicToggle}
 
-    for _, child in pairs(contentFrame:GetDescendants()) do
-        if child:IsA("GuiObject") then
-            originalTransparencies[child] = {
-                BackgroundTransparency = child.BackgroundTransparency,
-                TextTransparency = (child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox")) and child.TextTransparency or nil
-            }
-        end
+for _, toggle in ipairs(toggles) do
+    originalTransparencies[toggle.ToggleFill] = {
+        BackgroundTransparency = toggle.GetState() and 0 or 1
+    }
+    originalTransparencies[toggle.ToggleButton] = {
+        Position = toggle.GetState() and UDim2.new(0.5, 2, 0.5, -12) or UDim2.new(0, 2, 0.5, -12)
+    }
+end
+
+for _, child in pairs(contentFrame:GetDescendants()) do
+    if child:IsA("GuiObject") and not originalTransparencies[child] then
+        originalTransparencies[child] = {
+            BackgroundTransparency = child.BackgroundTransparency,
+            TextTransparency = (child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox")) and child.TextTransparency or nil
+        }
     end
+end
 
-    minimizeButton.MouseButton1Click:Connect(function()
-        minimized = not minimized
-        local tweenInfoFade = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local tweenInfoSize = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-        
-        if minimized then
-            minimizeButton.Text = "+"
-            
-            TweenService:Create(contentFrame, tweenInfoFade, {BackgroundTransparency = 1}):Play()
-            for _, child in pairs(contentFrame:GetDescendants()) do
-                if child:IsA("GuiObject") then
-                    TweenService:Create(child, tweenInfoFade, {BackgroundTransparency = 1}):Play()
-                    if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
-                        TweenService:Create(child, tweenInfoFade, {TextTransparency = 1}):Play()
-                    end
+-- Updated minimizeButton.MouseButton1Click handler
+minimizeButton.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    local tweenInfoFade = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tweenInfoSize = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+
+    if minimized then
+        minimizeButton.Text = "+"
+        contentFrame.Visible = false
+
+        TweenService:Create(contentFrame, tweenInfoFade, {BackgroundTransparency = 1}):Play()
+        for _, child in pairs(contentFrame:GetDescendants()) do
+            if child:IsA("GuiObject") then
+                TweenService:Create(child, tweenInfoFade, {BackgroundTransparency = 1}):Play()
+                if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
+                    TweenService:Create(child, tweenInfoFade, {TextTransparency = 1}):Play()
                 end
             end
-            
-            task.delay(0.3, function()
-                if minimized then
-                    contentFrame.Visible = false
-                    local sizeTween = TweenService:Create(
-                        mainFrame,
-                        tweenInfoSize,
-                        {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, minimizedGuiHeight)}
-                    )
-                    sizeTween:Play()
-                end
-            end)
-        else
-            minimizeButton.Text = "−"
-            contentFrame.Visible = true
-            
-            local sizeTween = TweenService:Create(
-                mainFrame,
-                tweenInfoSize,
-                {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, originalGuiHeight)}
-            )
-            sizeTween:Play()
-            
-            sizeTween.Completed:Connect(function()
-                TweenService:Create(contentFrame, tweenInfoFade, {
-                    BackgroundTransparency = originalTransparencies[contentFrame] and 
-                    originalTransparencies[contentFrame].BackgroundTransparency or 1
-                }):Play()
-                for _, child in pairs(contentFrame:GetDescendants()) do
-                    if child:IsA("GuiObject") then
-                        local orig = originalTransparencies[child]
-                        if orig then
+        end
+
+        local sizeTween = TweenService:Create(
+            mainFrame,
+            tweenInfoSize,
+            {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, minimizedGuiHeight)}
+        )
+        sizeTween:Play()
+        TweenService:Create(shadowContainer, tweenInfoSize, {
+            Size = UDim2.new(0, 332, 0, minimizedGuiHeight + 12),
+            Position = UDim2.new(0, mainFrame.Position.X.Offset - 6, 0, mainFrame.Position.Y.Offset - 3)
+        }):Play()
+        TweenService:Create(shadow, tweenInfoSize, {
+            ImageTransparency = 0.25
+        }):Play()
+    else
+        minimizeButton.Text = "−"
+        contentFrame.Visible = true
+
+        local sizeTween = TweenService:Create(
+            mainFrame,
+            tweenInfoSize,
+            {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, originalGuiHeight)}
+        )
+        sizeTween:Play()
+        TweenService:Create(shadowContainer, tweenInfoSize, {
+            Size = UDim2.new(0, 352, 0, originalGuiHeight + 31),
+            Position = UDim2.new(0, mainFrame.Position.X.Offset - 16, 0, mainFrame.Position.Y.Offset - 16)
+        }):Play()
+        TweenService:Create(shadow, tweenInfoSize, {
+            ImageTransparency = 0.3
+        }):Play()
+
+        sizeTween.Completed:Connect(function()
+            TweenService:Create(contentFrame, tweenInfoFade, {
+                BackgroundTransparency = originalTransparencies[contentFrame] and 
+                originalTransparencies[contentFrame].BackgroundTransparency or 1
+            }):Play()
+            for _, child in pairs(contentFrame:GetDescendants()) do
+                if child:IsA("GuiObject") then
+                    local orig = originalTransparencies[child]
+                    if orig then
+                        if orig.BackgroundTransparency ~= nil then
                             TweenService:Create(child, tweenInfoFade, {BackgroundTransparency = orig.BackgroundTransparency}):Play()
-                            if child:IsA("TextLabel") or child:IsA("TextButton") or child:IsA("TextBox") then
-                                TweenService:Create(child, tweenInfoFade, {TextTransparency = orig.TextTransparency}):Play()
-                            end
+                        end
+                        if orig.TextTransparency ~= nil then
+                            TweenService:Create(child, tweenInfoFade, {TextTransparency = orig.TextTransparency}):Play()
+                        end
+                        if orig.Position then
+                            TweenService:Create(child, tweenInfoFade, {Position = orig.Position}):Play()
                         end
                     end
                 end
-            end)
-        end
-    end)
+            end
+        end)
+    end
+end)
 
     local dragging = false
     local dragOffset = Vector2.new(0, 0)
     local currentTween = nil
+    local shadowTween = nil
     local dragConnection
     local tweenInfoDrag = TweenInfo.new(0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
 
@@ -2033,9 +2121,13 @@ local function createCustomAnimationsGui()
                 if not dragging then return end
                 local mousePos = UserInputService:GetMouseLocation()
                 local targetPos = UDim2.new(0, mousePos.X - dragOffset.X, 0, mousePos.Y - dragOffset.Y)
+                local shadowPos = UDim2.new(0, (mousePos.X - dragOffset.X) - 16, 0, (mousePos.Y - dragOffset.Y) - 16)
                 if currentTween then currentTween:Cancel() end
                 currentTween = TweenService:Create(mainFrame, tweenInfoDrag, {Position = targetPos})
                 currentTween:Play()
+                if shadowTween then shadowTween:Cancel() end
+                shadowTween = TweenService:Create(shadowContainer, tweenInfoDrag, {Position = shadowPos})
+                shadowTween:Play()
             end)
         end
     end)
@@ -2051,6 +2143,10 @@ local function createCustomAnimationsGui()
                 currentTween:Cancel()
                 currentTween = nil
             end
+            if shadowTween then
+                shadowTween:Cancel()
+                shadowTween = nil
+            end
         end
     end)
 
@@ -2058,6 +2154,11 @@ local function createCustomAnimationsGui()
 end
 
 local function createDraggableGui(getGhostEnabled, toggleGhost)
+    local TweenService = game:GetService("TweenService")
+    local UserInputService = game:GetService("UserInputService")
+    local RunService = game:GetService("RunService")
+    local LocalPlayer = game.Players.LocalPlayer
+
     local screenGui = Instance.new("ScreenGui")
     screenGui.Name = "EnhancedGhostGui"
     screenGui.ResetOnSpawn = false
@@ -2065,12 +2166,36 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
     screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
     screenGui.Enabled = true
 
+    local shadowContainer = Instance.new("Frame")
+    shadowContainer.Name = "shadowContainer"
+    shadowContainer.BackgroundTransparency = 1
+    shadowContainer.Size = UDim2.new(0, 352, 0, 291)
+    shadowContainer.Position = UDim2.new(0.5, -176, 0.5, -146)
+    shadowContainer.ZIndex = 1
+    shadowContainer.Parent = screenGui
+    local shadowCorner = Instance.new("UICorner")
+    shadowCorner.CornerRadius = UDim.new(0, 12)
+    shadowCorner.Parent = shadowContainer
+
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "shadow"
+    shadow.Image = "rbxassetid://297774371"
+    shadow.ImageColor3 = Color3.fromRGB(15, 15, 15)
+    shadow.ImageTransparency = 0.3
+    shadow.SliceCenter = Rect.new(20, 20, 280, 280)
+    shadow.BackgroundTransparency = 1
+    shadow.Size = UDim2.new(1, 0, 1, 0)
+    shadow.Position = UDim2.new(0, 0, 0, 0)
+    shadow.ZIndex = 1
+    shadow.Parent = shadowContainer
+
     local mainFrame = Instance.new("Frame")
-    mainFrame.Size = UDim2.new(0, 320, 0, 260) -- Adjusted height since text boxes are removed
-    mainFrame.Position = UDim2.new(0.5, -160, -0.5, -130)
+    mainFrame.Size = UDim2.new(0, 320, 0, 260)
+    mainFrame.Position = UDim2.new(0.5, -160, 0.5, -130)
     mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     mainFrame.BorderSizePixel = 0
-    mainFrame.BackgroundTransparency = 1
+    mainFrame.BackgroundTransparency = 0
+    mainFrame.ZIndex = 2
     local uiCorner = Instance.new("UICorner")
     uiCorner.CornerRadius = UDim.new(0, 12)
     uiCorner.Parent = mainFrame
@@ -2103,32 +2228,38 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
     titleLabel.Parent = titleBar
 
     local minimizeButton = Instance.new("TextButton")
-    minimizeButton.Size = UDim2.new(0, 32, 0, 32)
-    minimizeButton.Position = UDim2.new(1, -80, 0, 9)
+    minimizeButton.Size = UDim2.new(0, 40, 0, 40)
+    minimizeButton.Position = UDim2.new(1, -90, 0, 5)
     minimizeButton.Text = "−"
     minimizeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
-    minimizeButton.TextSize = 24
+    minimizeButton.TextSize = 28
     minimizeButton.Font = Enum.Font.GothamBold
-    minimizeButton.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-    minimizeButton.BackgroundTransparency = 0.3
-    local minCorner = Instance.new("UICorner")
-    minCorner.CornerRadius = UDim.new(1, 0)
-    minCorner.Parent = minimizeButton
+    minimizeButton.BackgroundTransparency = 1
     minimizeButton.Parent = titleBar
 
     local closeButton = Instance.new("TextButton")
-    closeButton.Size = UDim2.new(0, 32, 0, 32)
-    closeButton.Position = UDim2.new(1, -40, 0, 9)
+    closeButton.Size = UDim2.new(0, 40, 0, 40)
+    closeButton.Position = UDim2.new(1, -45, 0, 5)
     closeButton.Text = "×"
-    closeButton.TextColor3 = Color3.fromRGB(255, 100, 100)
-    closeButton.TextSize = 24
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 28
     closeButton.Font = Enum.Font.GothamBold
-    closeButton.BackgroundColor3 = Color3.fromRGB(45, 45, 50)
-    closeButton.BackgroundTransparency = 0.3
-    local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(1, 0)
-    closeCorner.Parent = closeButton
+    closeButton.BackgroundTransparency = 1
     closeButton.Parent = titleBar
+
+    minimizeButton.MouseEnter:Connect(function()
+        minimizeButton.TextColor3 = Color3.fromRGB(0, 191, 255)
+    end)
+    minimizeButton.MouseLeave:Connect(function()
+        minimizeButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+    end)
+
+    closeButton.MouseEnter:Connect(function()
+        closeButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+    end)
+    closeButton.MouseLeave:Connect(function()
+        closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
 
     local contentFrame = Instance.new("Frame")
     contentFrame.Size = UDim2.new(0.9, 0, 1, -60)
@@ -2172,9 +2303,10 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
         toggleFrame.Parent = container
 
         local toggleFill = Instance.new("Frame")
-        toggleFill.Size = UDim2.new(enabled and 1 or 0, 0, 1, 0)
+        toggleFill.Size = UDim2.new(1, 0, 1, 0)
         toggleFill.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
         toggleFill.BorderSizePixel = 0
+        toggleFill.BackgroundTransparency = enabled and 0 or 1
         local fillCorner = Instance.new("UICorner")
         fillCorner.CornerRadius = UDim.new(0, 14)
         fillCorner.Parent = toggleFill
@@ -2182,7 +2314,7 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
 
         local toggleButton = Instance.new("Frame")
         toggleButton.Size = UDim2.new(0, 24, 0, 24)
-        toggleButton.Position = UDim2.new(enabled and 0.6 or 0, 2, 0.5, -12)
+        toggleButton.Position = UDim2.new(enabled and 0.5 or 0, 2, 0.5, -12)
         toggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
         toggleButton.BorderSizePixel = 0
         local buttonCorner = Instance.new("UICorner")
@@ -2208,6 +2340,7 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
         cooldownLabel.TextXAlignment = Enum.TextXAlignment.Right
         cooldownLabel.Parent = container
 
+        local toggleState = enabled
         local tweenInfoToggle = TweenInfo.new(0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
         local fadeTweenInfoShort = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
@@ -2217,21 +2350,21 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
                 return
             end
 
-            enabled = state
-            local targetFillSize = state and UDim2.new(1, 0, 1, 0) or UDim2.new(0, 0, 1, 0)
-            local targetButtonPos = state and UDim2.new(0.6, 2, 0.5, -12) or UDim2.new(0, 2, 0.5, -12)
-            
-            TweenService:Create(toggleFill, tweenInfoToggle, {Size = targetFillSize}):Play()
+            toggleState = state
+            local targetButtonPos = state and UDim2.new(0.5, 2, 0.5, -12) or UDim2.new(0, 2, 0.5, -12)
+            local targetFillTransparency = state and 0 or 1
+
+            TweenService:Create(toggleFill, tweenInfoToggle, {BackgroundTransparency = targetFillTransparency}):Play()
             TweenService:Create(toggleButton, tweenInfoToggle, {Position = targetButtonPos}):Play()
-            
+
             if callback and name == "Enable Reanimation" then
                 lastToggleTime = currentTime
                 toggleFill.BackgroundColor3 = Color3.fromRGB(0, 50, 100)
                 toggleFrame.AutoButtonColor = false
-                
+
                 local remainingTime = COOLDOWN_DURATION
                 local lastNumber = nil
-                
+
                 local function updateCooldownDisplay()
                     local currentNumber = math.ceil(remainingTime)
                     if currentNumber ~= lastNumber then
@@ -2247,14 +2380,14 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
                         lastNumber = currentNumber
                     end
                 end
-                
+
                 updateCooldownDisplay()
-                
+
                 local connection
                 connection = RunService.Heartbeat:Connect(function(deltaTime)
                     remainingTime = remainingTime - deltaTime
                     updateCooldownDisplay()
-                    
+
                     if remainingTime <= 0 then
                         toggleFill.BackgroundColor3 = Color3.fromRGB(0, 100, 200)
                         toggleFrame.AutoButtonColor = true
@@ -2265,7 +2398,7 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
                         connection:Disconnect()
                     end
                 end)
-                
+
                 callback(state)
             elseif callback then
                 callback(state)
@@ -2273,14 +2406,16 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
         end
 
         toggleFrame.MouseButton1Click:Connect(function()
-            updateToggle(not enabled)
+            updateToggle(not toggleState)
         end)
 
         return {
             Container = container,
             ToggleFrame = toggleFrame,
             ToggleButton = toggleButton,
-            UpdateToggle = updateToggle
+            ToggleFill = toggleFill,
+            UpdateToggle = updateToggle,
+            GetState = function() return toggleState end
         }
     end
 
@@ -2301,11 +2436,21 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
     end)
 
     local originalGuiHeight = mainFrame.Size.Y.Offset
-    local minimizedGuiHeight = titleBar.Size.Y.Offset + 10
+    local minimizedGuiHeight = titleBar.Size.Y.Offset
     local minimized = false
     local tweenInfoFade = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    local originalTransparencies = {}
+    local tweenInfoSize = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
 
+    -- Function to update toggle visuals
+    local function updateToggleVisuals(toggle)
+        local state = toggle.GetState()
+        toggle.ToggleFill.BackgroundTransparency = state and 0 or 1
+        toggle.ToggleButton.Position = state and UDim2.new(0.5, 2, 0.5, -12) or UDim2.new(0, 2, 0.5, -12)
+    end
+
+    local toggles = {reanimationToggle, animationListToggle, customAnimationsToggle, musicToggle}
+
+    local originalTransparencies = {}
     for _, child in pairs(contentFrame:GetDescendants()) do
         if child:IsA("GuiObject") then
             originalTransparencies[child] = {
@@ -2317,13 +2462,11 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
 
     minimizeButton.MouseButton1Click:Connect(function()
         minimized = not minimized
-        local tweenInfoFade = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local tweenInfoSize = TweenInfo.new(0.5, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-        
+
         if minimized then
             minimizeButton.Text = "+"
-            
-            TweenService:Create(contentFrame, tweenInfoFade, {BackgroundTransparency = 1}):Play()
+            contentFrame.Visible = false
+
             for _, child in pairs(contentFrame:GetDescendants()) do
                 if child:IsA("GuiObject") then
                     TweenService:Create(child, tweenInfoFade, {BackgroundTransparency = 1}):Play()
@@ -2332,34 +2475,39 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
                     end
                 end
             end
-            
-            task.delay(0.3, function()
-                if minimized then
-                    contentFrame.Visible = false
-                    local sizeTween = TweenService:Create(
-                        mainFrame,
-                        tweenInfoSize,
-                        {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, minimizedGuiHeight)}
-                    )
-                    sizeTween:Play()
-                end
-            end)
+
+            local sizeTween = TweenService:Create(
+                mainFrame,
+                tweenInfoSize,
+                {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, minimizedGuiHeight)}
+            )
+            sizeTween:Play()
+            TweenService:Create(shadowContainer, tweenInfoSize, {
+                Size = UDim2.new(0, 332, 0, minimizedGuiHeight + 12),
+                Position = UDim2.new(0, mainFrame.Position.X.Offset - 6, 0, mainFrame.Position.Y.Offset - 3)
+            }):Play()
+            TweenService:Create(shadow, tweenInfoSize, {
+                ImageTransparency = 0.25
+            }):Play()
         else
             minimizeButton.Text = "−"
             contentFrame.Visible = true
-            
+
             local sizeTween = TweenService:Create(
                 mainFrame,
                 tweenInfoSize,
                 {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, originalGuiHeight)}
             )
             sizeTween:Play()
-            
+            TweenService:Create(shadowContainer, tweenInfoSize, {
+                Size = UDim2.new(0, 352, 0, originalGuiHeight + 31),
+                Position = UDim2.new(0, mainFrame.Position.X.Offset - 16, 0, mainFrame.Position.Y.Offset - 16)
+            }):Play()
+            TweenService:Create(shadow, tweenInfoSize, {
+                ImageTransparency = 0.3
+            }):Play()
+
             sizeTween.Completed:Connect(function()
-                TweenService:Create(contentFrame, tweenInfoFade, {
-                    BackgroundTransparency = originalTransparencies[contentFrame] and 
-                    originalTransparencies[contentFrame].BackgroundTransparency or 1
-                }):Play()
                 for _, child in pairs(contentFrame:GetDescendants()) do
                     if child:IsA("GuiObject") then
                         local orig = originalTransparencies[child]
@@ -2371,6 +2519,21 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
                         end
                     end
                 end
+
+                -- Update toggle visuals immediately after maximize
+                for _, toggle in ipairs(toggles) do
+                    updateToggleVisuals(toggle)
+                end
+
+                -- Schedule one-time update 0.1 seconds after maximize
+                spawn(function()
+                    wait(0.3)
+                    if screenGui.Parent and not minimized then
+                        for _, toggle in ipairs(toggles) do
+                            updateToggleVisuals(toggle)
+                        end
+                    end
+                end)
             end)
         end
     end)
@@ -2390,8 +2553,40 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
     local dragging = false
     local dragOffset = Vector2.new(0, 0)
     local currentTween = nil
+    local shadowTween = nil
     local dragConnection
-    local tweenInfoDrag = TweenInfo.new(0.05, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+    local trailConnection
+    local tweenInfoDrag = TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+    local tweenInfoTrail = TweenInfo.new(0.1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+
+    local function createTrailShadow(parent, position, size)
+        local trailContainer = Instance.new("Frame")
+        trailContainer.BackgroundTransparency = 1
+        trailContainer.Size = size
+        trailContainer.Position = position
+        trailContainer.ZIndex = 0
+        trailContainer.Parent = parent
+        local trailCorner = Instance.new("UICorner")
+        trailCorner.CornerRadius = UDim.new(0, 12)
+        trailCorner.Parent = trailContainer
+
+        local trailShadow = Instance.new("ImageLabel")
+        trailShadow.Image = "rbxassetid://297774371"
+        trailShadow.ImageColor3 = Color3.fromRGB(15, 15, 15)
+        trailShadow.ImageTransparency = 0.85
+        trailShadow.SliceCenter = Rect.new(20, 20, 280, 280)
+        trailShadow.BackgroundTransparency = 1
+        trailShadow.Size = UDim2.new(1, 0, 1, 0)
+        trailShadow.Position = UDim2.new(0, 0, 0, 0)
+        trailShadow.ZIndex = 0
+        trailShadow.Parent = trailContainer
+
+        local fadeTween = TweenService:Create(trailShadow, tweenInfoTrail, {ImageTransparency = 1})
+        fadeTween:Play()
+        fadeTween.Completed:Connect(function()
+            trailContainer:Destroy()
+        end)
+    end
 
     titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -2399,13 +2594,32 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
             local mousePos = UserInputService:GetMouseLocation()
             dragOffset = mousePos - Vector2.new(mainFrame.AbsolutePosition.X, mainFrame.AbsolutePosition.Y)
             if dragConnection then dragConnection:Disconnect() end
+            if trailConnection then trailConnection:Disconnect() end
+
             dragConnection = RunService.RenderStepped:Connect(function()
                 if not dragging then return end
                 local mousePos = UserInputService:GetMouseLocation()
                 local targetPos = UDim2.new(0, mousePos.X - dragOffset.X, 0, mousePos.Y - dragOffset.Y)
+                local shadowOffsetX = minimized and 6 or 16
+                local shadowOffsetY = minimized and 3 or 16
+                local shadowPos = UDim2.new(0, mousePos.X - dragOffset.X - shadowOffsetX, 0, mousePos.Y - dragOffset.Y - shadowOffsetY)
                 if currentTween then currentTween:Cancel() end
                 currentTween = TweenService:Create(mainFrame, tweenInfoDrag, {Position = targetPos})
                 currentTween:Play()
+                if shadowTween then shadowTween:Cancel() end
+                shadowTween = TweenService:Create(shadowContainer, tweenInfoDrag, {Position = shadowPos})
+                shadowTween:Play()
+            end)
+
+            trailConnection = RunService.Heartbeat:Connect(function()
+                if not dragging then return end
+                local shadowSize = UDim2.new(0, 352, 0, originalGuiHeight + 31)
+                local shadowPos = shadowContainer.Position
+                if minimized then
+                    shadowSize = UDim2.new(0, 332, 0, minimizedGuiHeight + 12)
+                end
+                createTrailShadow(screenGui, shadowPos, shadowSize)
+                task.wait(0.2)
             end)
         end
     end)
@@ -2417,20 +2631,35 @@ local function createDraggableGui(getGhostEnabled, toggleGhost)
                 dragConnection:Disconnect()
                 dragConnection = nil
             end
+            if trailConnection then
+                trailConnection:Disconnect()
+                trailConnection = nil
+            end
             if currentTween then
                 currentTween:Cancel()
                 currentTween = nil
             end
+            if shadowTween then
+                shadowTween:Cancel()
+                shadowTween = nil
+            end
+            local shadowSize = UDim2.new(0, 352, 0, originalGuiHeight + 31)
+            local shadowPos = UDim2.new(0, mainFrame.Position.X.Offset - 16, 0, mainFrame.Position.Y.Offset - 16)
+            local shadowTransparency = 0.3
+            if minimized then
+                shadowSize = UDim2.new(0, 332, 0, minimizedGuiHeight + 12)
+                shadowPos = UDim2.new(0, mainFrame.Position.X.Offset - 6, 0, mainFrame.Position.Y.Offset - 3)
+                shadowTransparency = 0.25
+            end
+            shadowTween = TweenService:Create(shadowContainer, tweenInfoDrag, {
+                Position = shadowPos,
+                Size = shadowSize
+            }):Play()
+            TweenService:Create(shadow, tweenInfoDrag, {
+                ImageTransparency = shadowTransparency
+            }):Play()
         end
     end)
-
-    local tweenInfo = TweenInfo.new(0.7, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-    local goal = {
-        Position = UDim2.new(0.5, -160, 0.5, -130),
-        BackgroundTransparency = 0
-    }
-    local tween = TweenService:Create(mainFrame, tweenInfo, goal)
-    tween:Play()
 
     return screenGui
 end
